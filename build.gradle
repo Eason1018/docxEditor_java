@@ -12,6 +12,16 @@ repositories {
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation 'org.apache.poi:poi:5.2.3'
+    implementation 'org.apache.poi:poi-ooxml:5.2.3'
+    implementation 'com.opencsv:opencsv:5.6'
+    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
+    implementation 'org.jodconverter:jodconverter-local:4.4.6'
+    implementation 'org.jodconverter:jodconverter-core:4.4.6'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+    implementation 'com.documents4j:documents4j-transformer:1.1.6'
+    implementation 'com.documents4j:documents4j-util-all:1.1.6'
 }
 
 test {

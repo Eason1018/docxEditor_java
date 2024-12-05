@@ -1,44 +1,93 @@
 package org.example;
 
 import org.apache.poi.xwpf.usermodel.*;
-import java.io.*;
+import org.jodconverter.local.LocalConverter;
+import org.jodconverter.local.office.LocalOfficeManager;
+import org.jodconverter.core.office.OfficeException;
+import com.documents4j.api.DocumentType;
+import com.documents4j.api.IConverter;
+import com.documents4j.job.LocalConverter;
+import java.util.concurrent.TimeUnit;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 public class DocxUtils {
-    // Analyze the structure of a .docx file by printing out its table contents
+    // Analyze the structure of a .docx file
     public static void analyzeDocument(String filePath) throws IOException {
-        XWPFDocument doc = new XWPFDocument(new FileInputStream(filePath)); // Open the .docx file as an XWPFDocument
-        System.out.println("Analyzing document: " + filePath);
+        try (XWPFDocument doc = new XWPFDocument(new FileInputStream(filePath))) {
+            System.out.println("Analyzing document: " + filePath);
 
-        int tableIndex = 0;
-        for (XWPFTable table : doc.getTables()) { // Loop through all tables in the document
-            System.out.println("\nTable " + tableIndex + ":");
-            int rowIndex = 0;
-            for (XWPFTableRow row : table.getRows()) { // Loop through each row in the table
-                System.out.print("Row " + rowIndex + ": ");
-                for (XWPFTableCell cell : row.getTableCells()) { // Loop through each cell in the row
-                    System.out.print(cell.getText().strip() + " | "); // Print the text content of the cell
+            int tableIndex = 0;
+            for (XWPFTable table : doc.getTables()) {
+                System.out.println("\nTable " + tableIndex + ":");
+                int rowIndex = 0;
+                for (XWPFTableRow row : table.getRows()) {
+                    System.out.print("Row " + rowIndex + ": ");
+                    for (XWPFTableCell cell : row.getTableCells()) {
+                        System.out.print(cell.getText().strip() + " | ");
+                    }
+                    System.out.println();
+                    rowIndex++;
                 }
-                System.out.println(); // Move to the next row
-                rowIndex++;
+                tableIndex++;
             }
-            tableIndex++;
         }
     }
 
-    // Add a new row to a table and populate it with data
+    // Add a row to a table
     public static void addRowToTable(XWPFTable table, List<String> rowData) {
-        XWPFTableRow newRow = table.createRow(); // Create a new row at the end of the table
-        List<XWPFTableCell> cells = newRow.getTableCells(); // Get all cells in the new row
+        XWPFTableRow newRow = table.createRow();
+        List<XWPFTableCell> cells = newRow.getTableCells();
 
         for (int i = 0; i < rowData.size(); i++) {
-            if (i < cells.size()) { // If the table already has enough cells
-                cells.get(i).setText(rowData.get(i)); // Set text for existing cells
+            if (i < cells.size()) {
+                cells.get(i).setText(rowData.get(i));
             } else {
-                XWPFTableCell newCell = newRow.addNewTableCell(); // Create a new cell if needed
-                newCell.setText(rowData.get(i)); // Populate it with the corresponding data
+                XWPFTableCell newCell = newRow.addNewTableCell();
+                newCell.setText(rowData.get(i));
             }
         }
-        System.out.println("Row added successfully."); // Log the success of the operation
+        System.out.println("Row added successfully.");
+    }
+
+    // Delete a row from a table
+    public static void deleteRowFromTable(XWPFTable table, int rowIndex) {
+        if (rowIndex < 0 || rowIndex >= table.getRows().size()) {
+            System.out.println("Invalid row index.");
+            return;
+        }
+        table.removeRow(rowIndex);
+        System.out.println("Row deleted successfully.");
+    }
+
+
+    public static void convertToPdf(String inputDocxPath, String outputPdfPath) {
+        File inputFile = new File(inputDocxPath);
+        File outputFile = new File(outputPdfPath);
+
+        try (FileInputStream inputStream = new FileInputStream(inputFile);
+             FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+
+            IConverter converter = LocalConverter.builder()
+                    .baseFolder(new File("temp")) // Temporary folder for conversion jobs
+                    .workerPool(20, 25, 2, TimeUnit.SECONDS) // Configure worker threads
+                    .build();
+
+            boolean conversion = converter.convert(inputStream).as(DocumentType.MS_WORD)
+                    .to(outputStream).as(DocumentType.PDF)
+                    .execute();
+
+            if (conversion) {
+                System.out.println("PDF created successfully at: " + outputPdfPath);
+            } else {
+                System.err.println("PDF conversion failed.");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error during PDF conversion: " + e.getMessage());
+        }
     }
 }
