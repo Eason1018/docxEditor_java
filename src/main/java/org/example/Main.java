@@ -2,7 +2,6 @@ package org.example;
 
 import org.apache.poi.xwpf.usermodel.*;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Arrays;
@@ -62,8 +61,8 @@ public class Main {
             scanner.nextLine(); // consume newline
             String rowData = scanner.nextLine();
             XWPFTable table = doc.getTables().get(tableIndex);
-            boolean success = DocxUtils.addRowToTable(table, Arrays.asList(rowData.split(",")));
-            if (success) System.out.println("Row added successfully.");
+            DocxUtils.addRowToTable(table, Arrays.asList(rowData.split(","))); // Void method; no need for boolean
+            System.out.println("Row added successfully.");
         } catch (Exception e) {
             System.out.println("Error adding row: " + e.getMessage());
         }
@@ -78,8 +77,8 @@ public class Main {
             System.out.print("Enter row index to delete: ");
             int rowIndex = scanner.nextInt();
             XWPFTable table = doc.getTables().get(tableIndex);
-            boolean success = DocxUtils.deleteRowFromTable(table, rowIndex);
-            if (success) System.out.println("Row deleted successfully.");
+            DocxUtils.deleteRowFromTable(table, rowIndex); // Void method; no need for boolean
+            System.out.println("Row deleted successfully.");
         } catch (Exception e) {
             System.out.println("Error deleting row: " + e.getMessage());
         }
@@ -116,8 +115,8 @@ public class Main {
             }
 
             XWPFTableCell cell = row.getCell(colIndex);
-            boolean success = SignatureUtils.addSignatureToCell(cell, imagePath);
-            if (success) System.out.println("Signature added successfully.");
+            SignatureUtils.addSignatureToCell(cell, imagePath); // Void method; no need for boolean
+            System.out.println("Signature added successfully.");
         } catch (Exception e) {
             System.out.println("Error adding signature: " + e.getMessage());
         }
