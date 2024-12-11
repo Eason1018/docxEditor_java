@@ -93,7 +93,9 @@ public class DocxUtils {
              FileOutputStream outputStream = new FileOutputStream(outputFile)) {
 
             // Create the converter
-            IConverter converter = LocalConverter.builder().build();
+            IConverter converter = LocalConverter.builder()
+                    .baseFolder(new File("C:\\Temp"))
+                    .build();
 
             // Perform the conversion
             converter.convert(inputStream).as(DocumentType.MS_WORD)

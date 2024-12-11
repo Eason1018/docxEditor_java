@@ -131,16 +131,20 @@ public class Main {
     }
 
     private static void saveAndConvert(XWPFDocument doc) {
+        String docxPath = "C:\\Temp\\output.docx";
+        String pdfPath = "C:\\Temp\\output.pdf";
+
         System.out.println("Saving document and generating PDF...");
-        try (FileOutputStream out = new FileOutputStream("src/main/resources/output.docx")) {
+        try (FileOutputStream out = new FileOutputStream(docxPath)) {
             doc.write(out);
-            System.out.println("Document saved as output.docx.");
+            System.out.println("Document saved as " + docxPath);
         } catch (Exception e) {
             System.err.println("Error saving document: " + e.getMessage());
         }
 
         try {
-            DocxUtils.convertToPdf("src/main/resources/output.docx", "src/main/resources/output.pdf");
+            DocxUtils.convertToPdf(docxPath, pdfPath);
+            System.out.println("Document converted to PDF successfully.");
         } catch (Exception e) {
             System.err.println("Error during PDF conversion: " + e.getMessage());
         }

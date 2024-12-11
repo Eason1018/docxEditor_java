@@ -28,12 +28,16 @@ dependencies {
     // Documents4j for document conversion
     implementation 'com.documents4j:documents4j-transformer:1.1.6'
     implementation 'com.documents4j:documents4j-local:1.1.6'
+    implementation 'com.documents4j:documents4j-transformer-msoffice-word:1.1.6'
+
 
     // JODConverter for LibreOffice/OpenOffice-based conversions
     implementation 'org.jodconverter:jodconverter-local:4.4.6'
 
     // SLF4J Simple for basic logging
     implementation 'org.slf4j:slf4j-simple:2.0.9'
+    implementation 'log4j:log4j:1.2.17'
+
 }
 
 test {
