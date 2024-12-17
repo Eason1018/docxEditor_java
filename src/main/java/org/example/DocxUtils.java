@@ -1,17 +1,12 @@
 package org.example;
 
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-import org.apache.poi.xwpf.usermodel.XWPFTableCell;
-
-import com.documents4j.api.DocumentType;
-import com.documents4j.api.IConverter;
-import com.documents4j.job.LocalConverter;
+import org.jodconverter.core.DocumentConverter;
+import org.jodconverter.local.LocalConverter;
+import org.jodconverter.local.office.LocalOfficeManager;
+import org.apache.poi.xwpf.usermodel.*;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -19,7 +14,7 @@ public class DocxUtils {
 
     /**
      * Analyzes the structure of a .docx file and prints table contents.
-     * @param filePath path to the input .docx file
+     * @param filePath Path to the input .docx file
      * @throws IOException if an I/O error occurs
      */
     public static void analyzeDocument(String filePath) throws IOException {
@@ -44,69 +39,68 @@ public class DocxUtils {
     }
 
     /**
-     * Adds a row to a given table.
-     * @param table   the XWPFTable to add a row to
-     * @param rowData the data for each cell in the new row
-     * @return true if the row was added successfully
-     */
-    public static boolean addRowToTable(XWPFTable table, List<String> rowData) {
-        XWPFTableRow newRow = table.createRow();
-        List<XWPFTableCell> cells = newRow.getTableCells();
-
-        for (int i = 0; i < rowData.size(); i++) {
-            if (i < cells.size()) {
-                cells.get(i).setText(rowData.get(i));
-            } else {
-                XWPFTableCell newCell = newRow.addNewTableCell();
-                newCell.setText(rowData.get(i));
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Deletes a row from a table by index.
-     * @param table    the XWPFTable to delete a row from
-     * @param rowIndex the index of the row to delete
-     * @return true if the row was deleted successfully, false otherwise
-     */
-    public static boolean deleteRowFromTable(XWPFTable table, int rowIndex) {
-        if (rowIndex < 0 || rowIndex >= table.getRows().size()) {
-            return false;
-        }
-        table.removeRow(rowIndex);
-        return true;
-    }
-
-    /**
-     * Converts a .docx file to a PDF file.
-     * Uses documents4j for conversion.
-     *
-     * @param inputDocxPath path to the input .docx file
-     * @param outputPdfPath path to the output .pdf file
+     * Converts a DOCX file to a PDF file using LibreOffice.
+     * @param inputDocxPath Path to the input DOCX file
+     * @param outputPdfPath Path to the output PDF file
      */
     public static void convertToPdf(String inputDocxPath, String outputPdfPath) {
-        File inputFile = new File(inputDocxPath);
-        File outputFile = new File(outputPdfPath);
-
-        try (FileInputStream inputStream = new FileInputStream(inputFile);
-             FileOutputStream outputStream = new FileOutputStream(outputFile)) {
+        LocalOfficeManager officeManager = LocalOfficeManager.builder().install().build();
+        try {
+            // Start LibreOffice service
+            officeManager.start();
 
             // Create the converter
-            IConverter converter = LocalConverter.builder()
-                    .baseFolder(new File("C:\\Temp"))
-                    .build();
+            DocumentConverter converter = LocalConverter.make(officeManager);
 
             // Perform the conversion
-            converter.convert(inputStream).as(DocumentType.MS_WORD)
-                    .to(outputStream).as(DocumentType.PDF)
+            converter.convert(new File(inputDocxPath))
+                    .to(new File(outputPdfPath))
                     .execute();
 
             System.out.println("PDF created successfully at: " + outputPdfPath);
 
         } catch (Exception e) {
             System.err.println("Error during PDF conversion: " + e.getMessage());
+        } finally {
+            try {
+                officeManager.stop();
+            } catch (Exception e) {
+                System.err.println("Error stopping LibreOffice manager: " + e.getMessage());
+            }
         }
     }
 
+    /**
+     * Adds a new row to the specified table.
+     * @param table   The table to add a row to
+     * @param rowData The data for the new row
+     * @return True if successful
+     */
+    public static boolean addRowToTable(XWPFTable table, List<String> rowData) {
+        XWPFTableRow newRow = table.createRow();
+        List<XWPFTableCell> cells = newRow.getTableCells();
+
+        // Ensure the row has enough cells
+        while (cells.size() < rowData.size()) {
+            newRow.addNewTableCell();
+        }
+
+        // Populate cells
+        for (int i = 0; i < rowData.size(); i++) {
+            cells.get(i).setText(rowData.get(i));
+        }
+        return true;
+    }
+
+    /**
+     * Deletes a row from the specified table.
+     * @param table    The table to delete a row from
+     * @param rowIndex The index of the row to delete
+     * @return True if successful
+     */
+    public static boolean deleteRowFromTable(XWPFTable table, int rowIndex) {
+        if (rowIndex < 0 || rowIndex >= table.getRows().size()) return false;
+        table.removeRow(rowIndex);
+        return true;
+    }
 }

@@ -9,11 +9,12 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        String inputDocxPath = "src/main/resources/input.docx";
         try (Scanner scanner = new Scanner(System.in);
-             XWPFDocument doc = new XWPFDocument(new FileInputStream("src/main/resources/input.docx"))) {
+             XWPFDocument doc = new XWPFDocument(new FileInputStream(inputDocxPath))) {
 
             System.out.println("\nAnalyzing document contents...");
-            DocxUtils.analyzeDocument("src/main/resources/input.docx");
+            DocxUtils.analyzeDocument(inputDocxPath);
 
             boolean running = true;
             while (running) {
@@ -46,7 +47,7 @@ public class Main {
             return scanner.nextInt();
         } catch (Exception e) {
             System.out.println("Invalid input. Please enter a number (1-4).");
-            scanner.nextLine(); // consume invalid input
+            scanner.nextLine();
             return -1;
         }
     }
@@ -58,10 +59,10 @@ public class Main {
             if (!isValidTableIndex(tableIndex, doc)) return;
 
             System.out.print("Enter row data (comma-separated): ");
-            scanner.nextLine(); // consume newline
+            scanner.nextLine();
             String rowData = scanner.nextLine();
             XWPFTable table = doc.getTables().get(tableIndex);
-            DocxUtils.addRowToTable(table, Arrays.asList(rowData.split(","))); // Void method; no need for boolean
+            DocxUtils.addRowToTable(table, Arrays.asList(rowData.split(",")));
             System.out.println("Row added successfully.");
         } catch (Exception e) {
             System.out.println("Error adding row: " + e.getMessage());
@@ -77,7 +78,7 @@ public class Main {
             System.out.print("Enter row index to delete: ");
             int rowIndex = scanner.nextInt();
             XWPFTable table = doc.getTables().get(tableIndex);
-            DocxUtils.deleteRowFromTable(table, rowIndex); // Void method; no need for boolean
+            DocxUtils.deleteRowFromTable(table, rowIndex);
             System.out.println("Row deleted successfully.");
         } catch (Exception e) {
             System.out.println("Error deleting row: " + e.getMessage());
@@ -91,10 +92,10 @@ public class Main {
             if (!isValidTableIndex(tableIndex, doc)) return;
 
             System.out.print("Enter row and column index (comma-separated): ");
-            scanner.nextLine(); // consume newline
+            scanner.nextLine();
             String[] indices = scanner.nextLine().split(",");
             if (indices.length < 2) {
-                System.out.println("Invalid indices. Please provide row and column separated by a comma.");
+                System.out.println("Invalid indices.");
                 return;
             }
             int rowIndex = Integer.parseInt(indices[0].trim());
@@ -104,49 +105,32 @@ public class Main {
             String imagePath = scanner.nextLine();
 
             XWPFTable table = doc.getTables().get(tableIndex);
-            if (rowIndex < 0 || rowIndex >= table.getNumberOfRows()) {
-                System.out.println("Invalid row index.");
-                return;
-            }
+            if (rowIndex < 0 || rowIndex >= table.getNumberOfRows()) return;
             XWPFTableRow row = table.getRow(rowIndex);
-            if (colIndex < 0 || colIndex >= row.getTableCells().size()) {
-                System.out.println("Invalid column index.");
-                return;
-            }
+            if (colIndex < 0 || colIndex >= row.getTableCells().size()) return;
 
             XWPFTableCell cell = row.getCell(colIndex);
-            SignatureUtils.addSignatureToCell(cell, imagePath); // Void method; no need for boolean
-            System.out.println("Signature added successfully.");
+            SignatureUtils.addSignatureToCell(cell, imagePath);
         } catch (Exception e) {
             System.out.println("Error adding signature: " + e.getMessage());
         }
     }
 
     private static boolean isValidTableIndex(int tableIndex, XWPFDocument doc) {
-        if (tableIndex < 0 || tableIndex >= doc.getTables().size()) {
-            System.out.println("Invalid table index.");
-            return false;
-        }
-        return true;
+        return tableIndex >= 0 && tableIndex < doc.getTables().size();
     }
 
     private static void saveAndConvert(XWPFDocument doc) {
-        String docxPath = "C:\\Temp\\output.docx";
-        String pdfPath = "C:\\Temp\\output.pdf";
+        String docxPath = "./resources/output.docx";
+        String pdfPath = "./resources/output.pdf";
 
-        System.out.println("Saving document and generating PDF...");
         try (FileOutputStream out = new FileOutputStream(docxPath)) {
             doc.write(out);
             System.out.println("Document saved as " + docxPath);
+            DocxUtils.convertToPdf(docxPath, pdfPath);
+            System.out.println("PDF saved as " + pdfPath);
         } catch (Exception e) {
             System.err.println("Error saving document: " + e.getMessage());
-        }
-
-        try {
-            DocxUtils.convertToPdf(docxPath, pdfPath);
-            System.out.println("Document converted to PDF successfully.");
-        } catch (Exception e) {
-            System.err.println("Error during PDF conversion: " + e.getMessage());
         }
     }
 }

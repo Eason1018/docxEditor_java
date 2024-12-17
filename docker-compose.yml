@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  docxeditor:
+    image: docxeditor_java:latest  # Replace with your actual image name
+    container_name: docxeditor-container
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./src/main/resources:/app/resources
+    working_dir: /app
+    command: java -jar build/libs/docxEditor_java-1.0-SNAPSHOT-all.jar
